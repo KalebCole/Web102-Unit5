@@ -1,0 +1,7 @@
+mount = constructor
+unmount = return a function 
+
+
+
+when will you use component lifecycle?
+- old codebases!`
