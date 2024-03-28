@@ -3,18 +3,16 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
-  const [bookData, setBookData] = useState({
-    books: null,
-    author: null,
-    subjects: null,
-    languages: null,
-    pages: null,
-  });
-  const [selectedLanguage, setSelectedLanguage] = useState("");
+  // i should probably only store the list of books. the other data can be derived from the list of books
+  const [bookData, setBookData] = useState(null);
+  const [selectedAuthor, setSelectedAuthor] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [selectedRangeOfPages, setSelectedRangeOfPages] = useState([0, 0]);
 
   const [searchInput, setSearchInput] = useState("");
 
-  const URL = `https://openlibrary.org/search.json?author=${bookData.author}`;
+  const URL = `https://openlibrary.org/search.json?author=${selectedAuthor}`;
   useEffect(() => {
     const getListOfBooks = async () => {
       fetch(URL)
@@ -26,8 +24,11 @@ function App() {
             const languages = data.docs.map(book => book.language);
             filteredBooks = data.docs.filter(book => book.language && book.language.includes(selectedLanguage));
             console.log(filteredBooks);
+            setBookData(filteredBooks);
           }
-          setBookData(prevState => ({ ...prevState, books: { ...data, docs: filteredBooks } }));
+          else{
+            setBookData(data);
+          }
           console.log(data.docs);
         });
     };
@@ -45,13 +46,13 @@ function App() {
         <option value="spa">Spanish</option>
         <option value="fre">French</option>
       </select>
-      {bookData.books === null ? (
+      {bookData === null ? (
         <p>Loading...</p>
       ) : (
         <>
-          <p>Total Books: {bookData.books.numFound}</p>
+          <p>Total Books: {bookData.numFound}</p>
           <p>Total Books in </p>
-          {bookData.books.docs.map((book) => (
+          {bookData.docs.map((book) => (
             <div key={book.key}>
               <h2>
                 {book.title} by {book.author_name[0]}
