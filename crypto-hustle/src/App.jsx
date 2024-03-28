@@ -9,19 +9,34 @@ function App() {
 
   useEffect(() => {
     const fetchAllCoinsData = async () => {
-      fetch("https://min-api.cryptocompare.com/data/all/coinlist" )
+      fetch(
+        "https://min-api.cryptocompare.com/data/all/coinlist?&api_key" + API_KEY
+      )
         .then((response) => response.json())
         .then((data) => {
-          console.log(data.Data);
-          // setList(data);
+          setList(data);
         });
-    };
-    fetchAllCoinsData();
-  }, []);
-
+      };
+      fetchAllCoinsData().catch(console.error);
+    }, []);
+    
+  console.log(list.Data);
   return (
     <>
-      <h1>test</h1>
+      <div className="whole-page">
+        <h1>My Crypto List</h1>
+        <ul>
+          {list &&
+            Object.entries(list.Data).map(([coin]) =>
+              list.Data[coin].PlatformType === "blockchain" ? (
+                <li key={list.Data[coin].FullName}>
+                  {" "}
+                  {list.Data[coin].FullName}{" "}
+                </li>
+              ) : null
+            )}
+        </ul>
+      </div>
     </>
   );
 }
