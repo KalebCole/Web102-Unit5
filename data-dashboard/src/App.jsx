@@ -18,13 +18,12 @@ function App() {
       fetch(URL)
         .then((response) => response.json())
         .then((data) => {
-          let filteredBooks = data.docs;
+          let filteredBooks = data;
           if (selectedLanguage) {
             console.log(selectedLanguage);
-            const languages = data.docs.map(book => book.language);
             filteredBooks = data.docs.filter(book => book.language && book.language.includes(selectedLanguage));
             console.log(filteredBooks);
-            setBookData(filteredBooks);
+            setBookData({ ...data, docs: filteredBooks, numFound: filteredBooks.length });
           }
           else{
             setBookData(data);
@@ -44,14 +43,19 @@ function App() {
         <option value="">Select a language</option>
         <option value="eng">English</option>
         <option value="spa">Spanish</option>
-        <option value="fre">French</option>
+        <option value="dut">Dutch</option>
+        <option value="ita">Italian</option>
+        <option value="por">Portuguese</option>
+        <option value="rus">Russian</option>
+        <option value="pol">Polish</option>
+        <option value="ger">German</option>
       </select>
       {bookData === null ? (
         <p>Loading...</p>
       ) : (
         <>
           <p>Total Books: {bookData.numFound}</p>
-          <p>Total Books in </p>
+          {/* <p>Total Books in </p> */}
           {bookData.docs.map((book) => (
             <div key={book.key}>
               <h2>
