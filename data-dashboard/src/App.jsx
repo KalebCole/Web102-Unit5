@@ -46,16 +46,18 @@ const BooksList = ({ books }) => {
                 <h3>Title</h3>
             </div>
             <div className="book-cell">
-                <h3>Description</h3>
+                <h3>Pages</h3>
             </div>
         </div>
+        {/* now I need to update this to get the image, title, and page number */}
+        {console.log(books)}
         {books.map((book) => {
-          if (book.covers && book.covers[0]) {
+          if (book.cover_i && book.title){
             return (
               <div key={book.key} className="book-row">
                 <div className="book-cell">
                   <img
-                    src={`https://covers.openlibrary.org/b/id/${book.covers[0]}-M.jpg`}
+                    src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
                     alt={book.title}
                     style={{ maxWidth: "100px", maxHeight: "150px" }} // Adjust size as needed
                   />
@@ -64,9 +66,10 @@ const BooksList = ({ books }) => {
                   <h3>{book.title}</h3>
                 </div>
                 <div className="book-cell">
-                  {book.description && book.description.value ? (
-                    <p>{book.description.value}</p>
-                  ) : <p>No description available.</p>}
+                  {book.number_of_pages_median && (
+                    <p>Pages: {book.number_of_pages_median}</p>
+                  
+                  ) }
                 </div>
               </div>
             );
@@ -80,48 +83,58 @@ const BooksList = ({ books }) => {
 
 // Main App component
 function App() {
-  const [authorName, setAuthorName] = useState("");
-  const [authorData, setAuthorData] = useState([]);
-
-  useEffect(() => {
-    if (authorName) {
-      let author_fixed = authorName.toLowerCase().split(" ").join("%20");
-      let URL = `https://openlibrary.org/search/authors.json?q=${author_fixed}`;
-      fetch(URL)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data);
-          if (data && data.docs[0] && data.docs[0].key) {
-            console.log("in here");
-            return fetch(
-              `https://openlibrary.org/authors/${data.docs[0].key}/works.json`
-            )
-              .then((response) => response.json())
-              .then((worksData) => {
-                setAuthorData(worksData.entries);
-                console.log(worksData.entries);
-                // Set the works data to state here
-              });
-          } else {
-            console.log("No data found");
-          }
-        })
-        .catch((error) => console.error(error));
-    }
-  }, [authorName]);
-
-  return (
-    <div className="App">
-      <h1>Books!</h1>
-      <AuthorSelect setAuthorName={setAuthorName} />
-      {authorName && <CollectionHeader author={authorName} />}
-      {/* for each book in the AuthorData.entries: get the title, cover (covers[0]), and description and pass it into item component for a table*/}
-      {authorData && authorData.length > 0 && (
-        <BooksList books={authorData} />
-      )}
-    </div>
-  );
-}
-//   https://covers.openlibrary.org/b/id/1-S.jpg
-
-export default App;
+    const [authorName, setAuthorName] = useState("");
+    const [authorData, setAuthorData] = useState([]);
+    const [detailedBooks, setDetailedBooks] = useState([]);
+  
+    useEffect(() => {
+      if (authorName) {
+        const author_fixed = authorName.toLowerCase().split(" ").join("%20");
+        const URL = `https://openlibrary.org/search/authors.json?q=${author_fixed}`;
+        fetch(URL)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data && data.docs[0] && data.docs[0].key) {
+              return fetch(`https://openlibrary.org/authors/${data.docs[0].key}/works.json`);
+            } else {
+              throw new Error("No data found");
+            }
+          })
+          .then((response) => response.json())
+          .then((worksData) => {
+            setAuthorData(worksData.entries);
+            return worksData.entries;
+          })
+          .then((entries) => {
+            // For each book, fetch additional details by title
+            entries.forEach((entry) => {
+              const titleQuery = entry.title.split(" ").join("+");
+              fetch(`https://openlibrary.org/search.json?title="${titleQuery}"`)
+                .then((response) => response.json())
+                .then((searchData) => {
+                  if (searchData.docs && searchData.docs.length > 0) {
+                    const detailedBook = searchData.docs[0];
+                    // console.log(detailedBook)
+                    setDetailedBooks((prevBooks) => [...prevBooks, detailedBook]);
+                  }
+                })
+                .catch((error) => console.error(error));
+            });
+          })
+          .catch((error) => console.error(error));
+      }
+    }, [authorName]);
+  
+    return (
+      <div className="App">
+        <h1>Books!</h1>
+        <AuthorSelect setAuthorName={setAuthorName} />
+        {authorName && <CollectionHeader author={authorName} />}
+        {detailedBooks && detailedBooks.length > 0 && (
+          <BooksList books={detailedBooks} />
+        )}
+      </div>
+    );
+  }
+  
+  export default App;
