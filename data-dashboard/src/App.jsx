@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import SearchBox from "./components/SearchBox";
 
 // Components (Placeholder implementations)
 const AuthorSelect = ({ setAuthorName }) => {
@@ -86,8 +87,50 @@ const YearFilter = ({ yearFilter, setYearFilter }) => {
   );
 };
 
+function filterBooks(books) {
+  return books.filter(
+    (book) =>
+      book.ratings_average !== undefined &&
+      book.ratings_average >= ratingFilter &&
+      book.subjects &&
+      book.subjects.length > 0 &&
+      (subjectFilter === "All" ||
+        book.subjects
+          .map((subject) => subject.toLowerCase())
+          .includes(subjectFilter.toLowerCase())) &&
+      (yearFilter === "" || book.first_publish_year === parseInt(yearFilter))
+  );
+}
+
 const StatisticsCards = ({ books }) => {
-  // Calculate statistics here based on books data
+  // Filter out books without a ratings_average and calculate the average rating
+  const filteredBooksForRating = books.filter(
+    (book) => book.ratings_average !== undefined
+  );
+  const averageRating =
+    filteredBooksForRating.reduce(
+      (acc, curr) => acc + curr.ratings_average,
+      0
+    ) / filteredBooksForRating.length;
+
+  // Avoid division by zero
+  const displayAverageRating = isNaN(averageRating)
+    ? 0
+    : averageRating.toFixed(2); // Round to 2 decimal places
+
+  // Calculate the earliest publication year
+  const earliestPublicationYear = books.reduce((min, book) => {
+    if (book.first_publish_year && (!min || book.first_publish_year < min)) {
+      return book.first_publish_year;
+    }
+    return min;
+  }, null);
+
+  // Count the number of eBooks that are borrowable
+  const borrowableEbooksCount = books.reduce((count, book) => {
+    return count + (book.ebook_access === "borrowable" ? 1 : 0);
+  }, 0);
+
   return (
     <div
       style={{
@@ -96,10 +139,43 @@ const StatisticsCards = ({ books }) => {
         margin: "10px",
       }}
     >
-      {/* Placeholder for cards */}
-      <div>Card 1</div>
-      <div>Card 2</div>
-      <div>Card 3</div>
+      {/* Average Rating Card */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: "20px",
+          border: "1px solid #ddd",
+          borderRadius: "5px",
+        }}
+      >
+        <h2>Average Rating</h2>
+        <p>{displayAverageRating}</p>
+      </div>
+
+      {/* Earliest Publication Year Card */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: "20px",
+          border: "1px solid #ddd",
+          borderRadius: "5px",
+        }}
+      >
+        <h2>Earliest Publication Year</h2>
+        <p>{earliestPublicationYear || "N/A"}</p>
+      </div>
+      {/* Number of Borrowable eBooks Card */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: "20px",
+          border: "1px solid #ddd",
+          borderRadius: "5px",
+        }}
+      >
+        <h2>Borrowable eBooks</h2>
+        <p>{borrowableEbooksCount}</p>
+      </div>
     </div>
   );
 };
@@ -155,6 +231,7 @@ function App() {
   const [ratingFilter, setRatingFilter] = useState(0);
   const [subjectFilter, setSubjectFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
+  const [filteredBooks, setFilteredBooks] = useState([]);
 
   useEffect(() => {
     if (authorName) {
@@ -210,6 +287,7 @@ function App() {
       <h1>Books!</h1>
       <AuthorSelect setAuthorName={setAuthorName} />
       {authorName && <CollectionHeader author={authorName} />}
+      <SearchBox books={detailedBooks} setFilteredBooks={setFilteredBooks} />
       <div
         style={{
           display: "flex",
@@ -228,24 +306,9 @@ function App() {
         />
         <YearFilter yearFilter={yearFilter} setYearFilter={setYearFilter} />
       </div>
-
+      {authorName && <StatisticsCards books={filterBooks(filteredBooks)} />}
       {detailedBooks.length > 0 && (
-        // console.log(subjectFilter),
-        <BooksList
-          books={detailedBooks.filter(
-            (book) =>
-              book.ratings_average !== undefined &&
-              book.ratings_average >= ratingFilter &&
-              book.subjects &&
-              book.subjects.length > 0 &&
-              (subjectFilter === "All" ||
-                book.subjects
-                  .map((subject) => subject.toLowerCase())
-                  .includes(subjectFilter.toLowerCase())) &&
-              (yearFilter === "" ||
-                book.first_publish_year === parseInt(yearFilter))
-          )}
-        />
+        <BooksList books={filterBooks(filteredBooks)} />
       )}
     </div>
   );
