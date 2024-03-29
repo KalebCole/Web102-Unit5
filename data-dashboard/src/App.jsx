@@ -43,27 +43,33 @@ const RatingFilter = ({ ratingFilter, setRatingFilter }) => {
     </div>
   );
 };
-// const SubjectFilter = ({ subjectFilter, setSubjectFilter }) => {
-//   // Example subjects list. Replace or extend with your subjects as needed.
-//   const subjects = ["All", "Fiction", "Science Fiction", "Action & Adventure", "Drama"];
+const SubjectFilter = ({ subjectFilter, setSubjectFilter }) => {
+  // Example subjects list. Replace or extend with your subjects as needed.
+  const subjects = [
+    "All",
+    "Fiction",
+    "Science Fiction",
+    "Action & Adventure",
+    "Drama",
+  ];
 
-//   return (
-//     <div>
-//       <label htmlFor="subjectFilter">Subject: </label>
-//       <select
-//         id="subjectFilter"
-//         value={subjectFilter}
-//         onChange={(e) => setSubjectFilter(e.target.value)}
-//       >
-//         {subjects.map((subject) => (
-//           <option key={subject} value={subject}>
-//             {subject}
-//           </option>
-//         ))}
-//       </select>
-//     </div>
-//   );
-// };
+  return (
+    <div>
+      <label htmlFor="subjectFilter">Subject: </label>
+      <select
+        id="subjectFilter"
+        value={subjectFilter}
+        onChange={(e) => setSubjectFilter(e.target.value)}
+      >
+        {subjects.map((subject) => (
+          <option key={subject} value={subject}>
+            {subject}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
 
 const StatisticsCards = ({ books }) => {
   // Calculate statistics here based on books data
@@ -152,7 +158,9 @@ function App() {
         .then((response) => response.json())
         .then((worksData) => {
           setAuthorData(worksData.entries);
-          return worksData.entries.length === 25 ? worksData.entries.slice(0, 25) : worksData.entries;
+          return worksData.entries.length === 25
+            ? worksData.entries.slice(0, 25)
+            : worksData.entries;
         })
         .then((entries) => {
           entries.forEach((entry) => {
@@ -179,8 +187,7 @@ function App() {
         })
         .catch((error) => console.error(error));
     }
-  }, [authorName, ratingFilter]);
-//   subjectFilter
+  }, [authorName, ratingFilter, subjectFilter]);
 
   return (
     <div className="App">
@@ -199,10 +206,10 @@ function App() {
           ratingFilter={ratingFilter}
           setRatingFilter={setRatingFilter}
         />
-        {/* <SubjectFilter
+        <SubjectFilter
           subjectFilter={subjectFilter}
           setSubjectFilter={setSubjectFilter}
-        /> */}
+        />
       </div>
 
       {detailedBooks.length > 0 && (
@@ -210,10 +217,14 @@ function App() {
         <BooksList
           books={detailedBooks.filter(
             (book) =>
-              book.ratings_average >= ratingFilter 
-            //   &&
-            //   (subjectFilter === "All" ||
-            //     book.subjects?.includes(subjectFilter.toLowerCase()))
+              book.ratings_average !== undefined &&
+              book.ratings_average >= ratingFilter &&
+              book.subjects &&
+              book.subjects.length > 0 &&
+              (subjectFilter === "All" ||
+                book.subjects
+                  .map((subject) => subject.toLowerCase())
+                  .includes(subjectFilter.toLowerCase()))
           )}
         />
       )}
