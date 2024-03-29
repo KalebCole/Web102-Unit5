@@ -16,13 +16,16 @@ const SearchBox = ({ books, setFilteredBooks }) => {
 
   const handleSearch = (event) => {
     const { value } = event.target;
+    console.log(value)
     setQuery(value);
 
     if (value.length > 2) { // Only search if the query length is 3 or more characters
       const results = fuse.search(value);
       const matches = results.map(result => result.item);
+      console.log(" in here")
       setFilteredBooks(matches);
     } else {
+        console.log("No search query")
       setFilteredBooks(books); // If the search query is cleared, reset the filtered books to the original list
     }
   };

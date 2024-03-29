@@ -87,19 +87,30 @@ const YearFilter = ({ yearFilter, setYearFilter }) => {
   );
 };
 
-function filterBooks(books) {
-  return books.filter(
-    (book) =>
+function filterBooks(books, ratingFilter, subjectFilter, yearFilter = "") {
+  {
+    console.log(books);
+  }
+  return books.filter((book) => {
+    const meetsRatingCriteria =
       book.ratings_average !== undefined &&
-      book.ratings_average >= ratingFilter &&
+      book.ratings_average >= ratingFilter;
+    const meetsSubjectCriteria =
       book.subjects &&
       book.subjects.length > 0 &&
       (subjectFilter === "All" ||
         book.subjects
           .map((subject) => subject.toLowerCase())
-          .includes(subjectFilter.toLowerCase())) &&
-      (yearFilter === "" || book.first_publish_year === parseInt(yearFilter))
-  );
+          .includes(subjectFilter.toLowerCase()));
+    const meetsYearCriteria =
+      yearFilter === "" || book.first_publish_year === parseInt(yearFilter);
+    console.log(ratingFilter);
+    return meetsRatingCriteria;
+    //   &&
+    // meetsSubjectCriteria
+    // &&
+    // meetsYearCriteria
+  });
 }
 
 const StatisticsCards = ({ books }) => {
@@ -127,7 +138,7 @@ const StatisticsCards = ({ books }) => {
   }, null);
 
   // Count the number of eBooks that are borrowable
-  const borrowableEbooksCount = books.reduce((count, book) => {
+  const ebooksCount = books.reduce((count, book) => {
     return count + (book.ebook_access === "borrowable" ? 1 : 0);
   }, 0);
 
@@ -173,8 +184,8 @@ const StatisticsCards = ({ books }) => {
           borderRadius: "5px",
         }}
       >
-        <h2>Borrowable eBooks</h2>
-        <p>{borrowableEbooksCount}</p>
+        <h2>Available eBooks</h2>
+        <p>{ebooksCount}</p>
       </div>
     </div>
   );
@@ -194,7 +205,7 @@ const BooksList = ({ books }) => {
           <h3>Pages</h3>
         </div>
       </div>
-      {console.log(books)}
+      {/* {console.log(books)} */}
       {books.map((book) => {
         if (book.cover_i && book.title) {
           return (
@@ -286,29 +297,56 @@ function App() {
     <div className="App">
       <h1>Books!</h1>
       <AuthorSelect setAuthorName={setAuthorName} />
-      {authorName && <CollectionHeader author={authorName} />}
-      <SearchBox books={detailedBooks} setFilteredBooks={setFilteredBooks} />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          margin: "20px",
-        }}
-      >
-        <RatingFilter
-          ratingFilter={ratingFilter}
-          setRatingFilter={setRatingFilter}
-        />
-        <SubjectFilter
-          subjectFilter={subjectFilter}
-          setSubjectFilter={setSubjectFilter}
-        />
-        <YearFilter yearFilter={yearFilter} setYearFilter={setYearFilter} />
-      </div>
-      {authorName && <StatisticsCards books={filterBooks(filteredBooks)} />}
-      {detailedBooks.length > 0 && (
-        <BooksList books={filterBooks(filteredBooks)} />
+      {authorName && (
+        <>
+          <CollectionHeader author={authorName} />
+          <SearchBox
+            books={detailedBooks}
+            setFilteredBooks={setFilteredBooks}
+          />
+        </>
+      )}
+
+      {filteredBooks.length > 0 && (
+        <>
+          <StatisticsCards
+            books={filterBooks(
+              filteredBooks,
+              ratingFilter,
+              subjectFilter,
+              yearFilter
+            )}
+          />
+          <BooksList
+            books={filterBooks(
+              filteredBooks,
+              ratingFilter,
+              subjectFilter,
+              yearFilter
+            )}
+          />
+        </>
+      )}
+
+      {filteredBooks.length === 0 && detailedBooks.length > 0 && (
+        <>
+          <StatisticsCards
+            books={filterBooks(
+              detailedBooks,
+              ratingFilter,
+              subjectFilter,
+              yearFilter
+            )}
+          />
+          <BooksList
+            books={filterBooks(
+              detailedBooks,
+              ratingFilter,
+              subjectFilter,
+              yearFilter
+            )}
+          />
+        </>
       )}
     </div>
   );
