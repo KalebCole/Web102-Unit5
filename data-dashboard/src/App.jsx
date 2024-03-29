@@ -70,6 +70,21 @@ const SubjectFilter = ({ subjectFilter, setSubjectFilter }) => {
     </div>
   );
 };
+const YearFilter = ({ yearFilter, setYearFilter }) => {
+  return (
+    <div style={{ margin: "0 20px" }}>
+      <label htmlFor="yearFilter">Publication Year:</label>
+      <input
+        id="yearFilter"
+        type="text"
+        placeholder="Enter year..."
+        value={yearFilter}
+        onChange={(e) => setYearFilter(e.target.value)}
+        style={{ marginLeft: "10px" }}
+      />
+    </div>
+  );
+};
 
 const StatisticsCards = ({ books }) => {
   // Calculate statistics here based on books data
@@ -139,6 +154,7 @@ function App() {
   const [seenKeys, setSeenKeys] = useState(new Set()); // Set to track seen book keys
   const [ratingFilter, setRatingFilter] = useState(0);
   const [subjectFilter, setSubjectFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
 
   useEffect(() => {
     if (authorName) {
@@ -210,6 +226,7 @@ function App() {
           subjectFilter={subjectFilter}
           setSubjectFilter={setSubjectFilter}
         />
+        <YearFilter yearFilter={yearFilter} setYearFilter={setYearFilter} />
       </div>
 
       {detailedBooks.length > 0 && (
@@ -224,7 +241,9 @@ function App() {
               (subjectFilter === "All" ||
                 book.subjects
                   .map((subject) => subject.toLowerCase())
-                  .includes(subjectFilter.toLowerCase()))
+                  .includes(subjectFilter.toLowerCase())) &&
+              (yearFilter === "" ||
+                book.first_publish_year === parseInt(yearFilter))
           )}
         />
       )}
