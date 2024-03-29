@@ -40,3 +40,28 @@
 .read-the-docs {
   color: #888;
 }
+
+.books-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.book-row {
+  display: flex;
+  border-bottom: 1px solid #ccc; /* Visual separator */
+  padding: 10px 0;
+}
+
+.book-cell {
+  flex: 1; /* Each cell takes equal width */
+  padding: 0 10px;
+}
+
+.book-cell:first-child {
+  flex: 0 0 100px; /* Fixed size for the image cell */
+}
+
+.book-cell img {
+  width: 100%; /* Make the image fully responsive within its cell */
+  height: auto;
+}
